@@ -1,0 +1,98 @@
+heat_template_version: 2013-05-23
+
+description: Template for launching a 3-node Ceph cluster
+
+parameters:
+  key_name:
+    type: string
+    description: My key-pair
+    default: Default
+  image_name:
+    type: string
+    description: Name of Image to be used
+  instance_type:
+    type: string
+    description: Flavor to be used
+    default: m1.2core
+  volume_size:
+    type: number
+    description: Size of the volume to be created
+    default: 7
+    constraints:
+      - range: { min: 1, max: 20 }
+        description: must be between 1 and 20 GBs
+  security_groups:
+    type: comma_delimited_list
+    description: Security groups you want applied to the instance
+    default: default
+  NetID:
+    type: string
+    description: The network ID for the server
+  fixed_ip_one:
+    type: string
+    description: The IP for the first server
+  fixed_ip_two:
+    type: string
+    description: The IP for the second server
+  fixed_ip_three:
+    type: string
+    description: The IP for the third server
+
+resources:
+  instance_one:
+    type: OS::Nova::Server
+    properties:
+      key_name: { get_param: key_name }
+      image: { get_param: image_name }
+      flavor: { get_param: instance_type }
+      networks: [{"fixed_ip": { get_param: fixed_ip_one }, "network": { get_param: NetID }}]
+      security_groups: { get_param: security_groups }
+
+  instance_two:
+    type: OS::Nova::Server
+    properties:
+      key_name: { get_param: key_name }
+      image: { get_param: image_name }
+      flavor: { get_param: instance_type }
+      networks: [{"fixed_ip": { get_param: fixed_ip_two }, "network": { get_param: NetID }}]
+      security_groups: { get_param: security_groups }
+
+  instance_three:
+    type: OS::Nova::Server
+    properties:
+      key_name: { get_param: key_name }
+      image: { get_param: image_name }
+      flavor: { get_param: instance_type }
+      networks: [{"fixed_ip": { get_param: fixed_ip_three }, "network": { get_param: NetID }}]
+      security_groups: { get_param: security_groups }
+
+  cinder_volume_one:
+    type: OS::Cinder::Volume
+    properties:
+      size: { get_param: volume_size }
+  volume_attachment_one:
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      volume_id: { get_resource: cinder_volume_one }
+      instance_uuid: { get_resource: instance_one }
+      mountpoint: /dev/vdc
+  cinder_volume_two:
+    type: OS::Cinder::Volume
+    properties:
+      size: { get_param: volume_size }
+  volume_attachment_two:
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      volume_id: { get_resource: cinder_volume_two }
+      instance_uuid: { get_resource: instance_two }
+      mountpoint: /dev/vdc
+  cinder_volume_three:
+    type: OS::Cinder::Volume
+    properties:
+      size: { get_param: volume_size }
+  volume_attachment_three:
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      volume_id: { get_resource: cinder_volume_three }
+      instance_uuid: { get_resource: instance_three }
+      mountpoint: /dev/vdc
