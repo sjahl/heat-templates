@@ -114,7 +114,7 @@ resources:
 outputs:
   instance_one_networks:
     description: The IP of instance_one
-    value: { get_attr: [instance_two, networks] }
+    value: { get_attr: [instance_one, networks] }
   instance_two_networks:
     description: The IP of instance_two
     value: { get_attr: [instance_two, networks] }
